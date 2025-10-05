@@ -27,5 +27,5 @@ else
 fi
 
 
-desmume-cli "${nds_rom}" --cflash-image /fs/fat.img
+desmume "${nds_rom}" --cflash-image /fs/fat.img
 
