@@ -7,7 +7,10 @@ services:
     volumes:
       - ./roms:/roms/
       - ./fs:/fs
-    #entrypoint: sh -c "desmume-cli /roms/rom.nds --disable-sound --cflash-image /fs/fat.img"
+    ports:
+      - 3000:3000
+      - 3001:3001
+    #entrypoint: sh -c "desmume-cli /roms/filesystem-nds.nds --disable-sound --cflash-image /fs/fat.img"
 
   watchdog:
     container_name: watchdog

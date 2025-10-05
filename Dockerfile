@@ -28,7 +28,7 @@ RUN git clone https://github.com/TASEmulators/desmume /desmume && \
     make -j8 && \
     make DESTDIR=/tmp/DeSmuME install
 
-FROM ubuntu:24.04 AS runtime
+FROM lscr.io/linuxserver/webtop:ubuntu-kde AS runtime
 
 # Required packages
 RUN apt-get update && apt-get install -y \
@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=build /tmp/DeSmuME/usr/bin/desmume-cli /usr/bin
 
 # Change to use custom entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+#COPY entrypoint.sh /entrypoint.sh
+#RUN chmod +x /entrypoint.sh
+#ENTRYPOINT ["/entrypoint.sh"]
 CMD []
