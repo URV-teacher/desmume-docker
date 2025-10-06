@@ -48,8 +48,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsoundtouch-dev \
     libagg-dev \
     libosmesa6-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    x11vnc \
+    xvfb && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir ~/.vnc && \
+    touch ~/.vnc/passwd && \
+    x11vnc -storepasswd "devopsil" ~/.vnc/passwd
 
 # Replace 1000 with your user / group id
 # TODO move to entrypoint
