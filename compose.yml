@@ -9,9 +9,9 @@ services:
       - ./fs:/fs
       - /tmp/.X11-unix:/tmp/.X11-unix        # no X11 socket bind needed in VNC mode
     ports:
-      - 3000:3000
-      - 3001:3001
-      - 5900:5900
+      - "3000:3000"
+      - "3001:3001"
+      - "5900:5900"
     environment:
       - DISPLAY=$DISPLAY
       - MODE=host
@@ -19,7 +19,7 @@ services:
       - GEOMETRY=1024x768x24
       - VNC_PORT=5900
       # - VNC_PASSWORD=secret
-    #entrypoint: sh -c "desmume-cli /roms/filesystem-nds.nds --disable-sound --cflash-image /fs/fat.img"
+    entrypoint: sh -c "desmume-cli /roms/filesystem-nds.nds --disable-sound --cflash-image /fs/fat.img"
 
   watchdog:
     container_name: watchdog
