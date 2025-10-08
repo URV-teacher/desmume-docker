@@ -6,13 +6,13 @@ RUN apt-get update && apt-get install -y \
     gcc \
     make \
     autoconf \
-    ninja-build \
     git \
+    ca-certificates \
     cmake \
     libglu1-mesa-dev \
     libsdl2-dev \
     libpcap-dev \
-    libgtk-3-dev \
+    libgtk2.0-dev \
     libopenal-dev \
     libsoundtouch-dev \
     libagg-dev \
@@ -25,27 +25,56 @@ RUN git clone https://github.com/TASEmulators/desmume /desmume && \
     cd /desmume/desmume/src/frontend/posix && \
     autoreconf -i && \
     ./configure --prefix=/usr --enable-gdb-stub && \
-    make -j8 && \
+    make -j"$(nproc)" && \
+    cd /desmume/desmume/src/frontend/posix/gtk2 && \
+    make -j"$(nproc)" && \
+    cd /desmume/desmume/src/frontend/posix && \
     make DESTDIR=/tmp/DeSmuME install
+
+RUN ls -R /tmp/DeSmuME/usr/bin/
+RUN ls -R /tmp/DeSmuME
+RUN ls -R /tmp/DeSmuME/usr/bin/
+RUN ls -R /desmume/desmume/src/frontend/posix/build
+RUN ls -R /desmume/desmume/src/frontend/posix
 
 FROM ubuntu:24.04 AS runtime
 
 # Required packages
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libsdl2-dev \
     libpcap-dev \
-    libgtk-3-dev \
+    libgtk2.0-dev \
     libopenal-dev \
     libsoundtouch-dev \
     libagg-dev \
     libosmesa6-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    x11vnc \
+    xvfb && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir ~/.vnc && \
+    touch ~/.vnc/passwd && \
+    x11vnc -storepasswd "devopsil" ~/.vnc/passwd
+
+# Replace 1000 with your user / group id
+# TODO move to entrypoint
+RUN export uid=1000 gid=1000 && \
+    mkdir -p /home/developer && \
+    mkdir -p /etc/sudoers.d/ && \
+    echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
+    echo "developer:x:${uid}:" >> /etc/group && \
+    echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer && \
+    chown ${uid}:${gid} -R /home/developer
 
 # Copy the compiled binary from the builder stage
 COPY --from=build /tmp/DeSmuME/usr/bin/desmume-cli /usr/bin
+COPY --from=build /tmp/DeSmuME/usr/bin/desmume /usr/bin
 
 # Change to use custom entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+USER developer
+ENV HOME /home/developer
 ENTRYPOINT ["/entrypoint.sh"]
+CMD []
