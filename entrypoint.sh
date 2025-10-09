@@ -13,6 +13,7 @@ export XVFB_DISPLAY="${VNC_XVFB_DISPLAY}"
 export GEOMETRY="${VNC_GEOMETRY}"
 
 : "${VNC_PORT:=5900}"
+echo $VNC_PORT
 : "${VNC_LISTEN:=0.0.0.0}"
 : "${VNC_PASSWORD:=}"                 # optional; empty => no auth
 
@@ -106,11 +107,6 @@ start_vnc_stack() {
   X11VNC_PID=$!
 }
 
-mkdir ~/.vnc && \
-touch ~/.vnc/passwd && \
-x11vnc -storepasswd "${VNC_PASSWORD}" ~/.vnc/passwd
-
-
 
 case "${MODE}" in
   vnc)
@@ -202,7 +198,7 @@ echo "[entrypoint] Starting emulator with watchdog for: ${WATCH_PATTERN}"
 
 # Ensure line-buffered stdout/stderr so the watcher sees lines immediately
 # (stdbuf is in coreutils; busybox-alpine has 'stdbuf' in 'coreutils' pkg)
-EMULATOR_CMD=(stdbuf -oL -eL ${cmd[*]})
+EMULATOR_CMD=${cmd[*]}
 LOG_FILE=${LOG_FILE:-/logs/desmume.log}
 
 # Make sure logs dir exists

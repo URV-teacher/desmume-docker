@@ -46,7 +46,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     x11vnc \
     xvfb && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*  \
+
+RUN mkdir ~/.vnc && \
+    touch ~/.vnc/passwd && \
+    x11vnc -storepasswd "devopsil" ~/.vnc/passwd \
 
 # Copy the compiled binary from the builder stage
 COPY --from=build /tmp/DeSmuME/usr/bin/desmume-cli /usr/bin
@@ -55,10 +59,6 @@ COPY --from=build /tmp/DeSmuME/usr/bin/desmume /usr/bin
 # Change to use custom entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
-RUN mkdir ~/.vnc && \
-    touch ~/.vnc/passwd && \
-    x11vnc -storepasswd "password" ~/.vnc/passwd
 
 RUN export username=desmume uid=${UID} gid=${GID} && \
     mkdir -p /home/${username} && \
