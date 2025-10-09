@@ -46,11 +46,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     x11vnc \
     xvfb && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*  \
+    rm -rf /var/lib/apt/lists/*
+
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    less && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p ~/.vnc && \
     touch ~/.vnc/passwd && \
-    x11vnc -storepasswd "devopsil" ~/.vnc/passwd \
+    x11vnc -storepasswd "devopsil" ~/.vnc/passwd
 
 # Copy the compiled binary from the builder stage
 COPY --from=build /tmp/DeSmuME/usr/bin/desmume-cli /usr/bin
@@ -60,7 +66,7 @@ COPY --from=build /tmp/DeSmuME/usr/bin/desmume /usr/bin
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-RUN export username=desmume uid=${UID} gid=${GID} && \
+RUN export uid=1000 gid=1000 username=desmume && \
     mkdir -p /home/${username} && \
     mkdir -p /etc/sudoers.d/ && \
     echo "${username}:x:${uid}:${gid}:${username},,,:/home/${username}:/bin/bash" >> /etc/passwd && \

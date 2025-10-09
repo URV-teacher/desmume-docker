@@ -132,7 +132,7 @@ nds_rom=""
 if [[ -n "${user_rom}" ]]; then
   nds_rom=""  # User will supply it via args; don't auto-append
 else
-  preferred_rom="/roms/__JPprofes.nds"
+  preferred_rom="/roms/rom.nds"
   search_dir="/roms"
   if [[ -f "${preferred_rom}" ]]; then
     nds_rom="${preferred_rom}"
@@ -203,12 +203,15 @@ LOG_FILE=${LOG_FILE:-/logs/desmume.log}
 
 # Make sure logs dir exists
 mkdir -p "$(dirname "$LOG_FILE")"
+touch "$LOG_FILE"
+# Print output as soon as it arrives the file
+less +F -f -r "$LOG_FILE" &
 
 echo "[entrypoint] Starting emulator with log to $LOG_FILE"
 
 # Start emulator in background, capture PID
-"${EMULATOR_CMD[@]}" 2>&1 \
-| tee -a "$LOG_FILE" \
+${EMULATOR_CMD[@]} 2>&1 \
+| tee "$LOG_FILE" \
 | awk -v pat="$WATCH_PATTERN" -v OFS="" '
     { print }  # echo every line back to console
     index($0, pat) {
