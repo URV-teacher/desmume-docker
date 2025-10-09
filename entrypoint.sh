@@ -1,18 +1,16 @@
-#!/bin/bash
-
 #!/usr/bin/env bash
+
 set -euo pipefail
 
-### ----- config via env (sane defaults) ------------------------------------
-# Mode: "host" (X11 passthrough to host) or "vnc" (Xvfb + x11vnc)
-MODE="${MODE:-host}"
+# Mode: "host" (X11 passthrough to host), "vnc" (Xvfb + x11vnc) or "none"
+MODE="${MODE:-none}"
 
 # Host X: only used in MODE=host
-HOST_DISPLAY="${DISPLAY:-:0}"
+X11_DISPLAY="${DISPLAY:-:0}"
 
 # VNC/Xvfb settings: only used in MODE=vnc
-XVFB_DISPLAY="${XVFB_DISPLAY:-:99}"
-GEOMETRY="${GEOMETRY:-1024x768x24}"     # WIDTHxHEIGHTxDEPTH (use depth 24/32)
+VNC_XVFB_DISPLAY="${XVFB_DISPLAY:-:99}"
+VNC_GEOMETRY="${VNC_GEOMETRY:-1024x768x24}"     # WIDTHxHEIGHTxDEPTH (use depth 24/32)
 VNC_PORT="${VNC_PORT:-5900}"
 VNC_LISTEN="${VNC_LISTEN:-0.0.0.0}"     # where x11vnc listens
 VNC_PASSWORD="${VNC_PASSWORD:-}"        # if set, create auth file; else no pw
@@ -32,8 +30,8 @@ CFLASH_IMAGE="${CFLASH_IMAGE:-/fs/fat.img}"
 log() { printf '[entrypoint] %s\n' "$*"; }
 
 start_vnc_stack() {
-  log "Starting Xvfb on ${XVFB_DISPLAY} with ${GEOMETRY}"
-  Xvfb "${XVFB_DISPLAY}" -screen 0 "${GEOMETRY}" -nolisten tcp &
+  log "Starting Xvfb on ${XVFB_DISPLAY} with ${VNC_GEOMETRY}"
+  Xvfb "${XVFB_DISPLAY}" -screen 0 "${VNC_GEOMETRY}" -nolisten tcp &
   XVFB_PID=$!
   export DISPLAY="${XVFB_DISPLAY}"
 

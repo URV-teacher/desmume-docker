@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone and build DeSmuME CLI, latest version
+# Clone and build DeSmuME CLI and GUI latest version
 RUN git clone https://github.com/TASEmulators/desmume /desmume && \
     mkdir -p /desmume/desmume/src/frontend/posix/build && \
     cd /desmume/desmume/src/frontend/posix && \
@@ -31,15 +31,9 @@ RUN git clone https://github.com/TASEmulators/desmume /desmume && \
     cd /desmume/desmume/src/frontend/posix && \
     make DESTDIR=/tmp/DeSmuME install
 
-RUN ls -R /tmp/DeSmuME/usr/bin/
-RUN ls -R /tmp/DeSmuME
-RUN ls -R /tmp/DeSmuME/usr/bin/
-RUN ls -R /desmume/desmume/src/frontend/posix/build
-RUN ls -R /desmume/desmume/src/frontend/posix
 
 FROM ubuntu:24.04 AS runtime
 
-# Required packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libsdl2-dev \
     libpcap-dev \
@@ -51,8 +45,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     x11vnc \
     xvfb && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir ~/.vnc && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir ~/.vnc && \
     touch ~/.vnc/passwd && \
     x11vnc -storepasswd "devopsil" ~/.vnc/passwd
 
@@ -74,7 +69,9 @@ COPY --from=build /tmp/DeSmuME/usr/bin/desmume /usr/bin
 # Change to use custom entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
 USER developer
 ENV HOME /home/developer
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD []
