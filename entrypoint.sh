@@ -24,6 +24,11 @@ echo $VNC_PORT
 
 : "${DESMUME_CFLASH_IMAGE:=/fs/fat.img}"
 
+PATTERN="Did your main() return"   # substring to detect
+KILL_ON_RETURN=${KILL_ON_RETURN:-1}                       # 1=enable, 0=disable
+KILL_GRACE_SECS=${KILL_GRACE_SECS:-1}                     # SIGKILL after this
+# DeSmuME command is expected in "$@"
+
 # -------------------- Helpers --------------------
 log() { printf '[entrypoint] %s\n' "$*"; }
 die() { printf '[entrypoint][ERROR] %s\n' "$*" >&2; exit 2; }
@@ -102,7 +107,7 @@ start_vnc_stack() {
     -rfbport "${VNC_PORT}" \
     -forever -shared \
     -noshm -noxdamage \
-    -o /tmp/x11vnc.log \
+    -o /logs/x11vnc.log \
     "${VNC_AUTH_ARG[@]}" &
   X11VNC_PID=$!
 }
@@ -181,21 +186,6 @@ fi
 # 3) Finally append **all** user-supplied args (flags + positionals)
 cmd+=( "${user_args[@]}" )
 
-
-# --- config ---------------------------------------------------------------
-WATCH_PATTERN=${WATCH_PATTERN:-"did your main return?"}   # substring to detect
-KILL_ON_RETURN=${KILL_ON_RETURN:-1}                       # 1=enable, 0=disable
-KILL_GRACE_SECS=${KILL_GRACE_SECS:-2}                     # SIGKILL after this
-# DeSmuME command is expected in "$@"
-# -------------------------------------------------------------------------
-
-if [[ "${KILL_ON_RETURN}" != "1" ]]; then
-  echo "[entrypoint] KILL_ON_RETURN=0 → exec directly"
-  exec "${cmd[*]}"
-fi
-
-echo "[entrypoint] Starting emulator with watchdog for: ${WATCH_PATTERN}"
-
 # Ensure line-buffered stdout/stderr so the watcher sees lines immediately
 # (stdbuf is in coreutils; busybox-alpine has 'stdbuf' in 'coreutils' pkg)
 EMULATOR_CMD=${cmd[*]}
@@ -204,43 +194,29 @@ LOG_FILE=${LOG_FILE:-/logs/desmume.log}
 # Make sure logs dir exists
 mkdir -p "$(dirname "$LOG_FILE")"
 touch "$LOG_FILE"
-# Print output as soon as it arrives the file
-less +F -f -r "$LOG_FILE" &
 
 echo "[entrypoint] Starting emulator with log to $LOG_FILE"
 
 # Start emulator in background, capture PID
-${EMULATOR_CMD[@]} 2>&1 \
-| tee "$LOG_FILE" \
-| awk -v pat="$WATCH_PATTERN" -v OFS="" '
-    { print }  # echo every line back to console
-    index($0, pat) {
-      printf("[watchdog] Detected pattern: \"%s\" → requesting shutdown...\n", pat) > "/dev/stderr";
-      system("kill -TERM " ENVIRON["EMU_PID"]);
-    }
-  ' &
+unbuffer ${EMULATOR_CMD[@]} 2>&1 |
+tee "$LOG_FILE" &
 EMU_PID=$!
 
-# Wait for emulator to exit; capture code
-wait "${EMU_PID}" || EMU_RC=$? || true
-EMU_RC=${EMU_RC:-0}
-
-# If we initiated the kill, give it a moment, then SIGKILL if needed
-if kill -0 "${EMU_PID}" 2>/dev/null; then
-  :
+if [[ "$KILL_ON_RETURN" == 0 ]]; then
+  wait $EMU_PID
+  exit 0
+elif [[ "$KILL_ON_RETURN" == 1 ]]; then
+  while kill -0 "$EMU_PID" 2>/dev/null; do
+    sleep ${KILL_GRACE_SECS}
+    if grep "${PATTERN}" < "$LOG_FILE" &> /dev/null; then
+      log "Reached end of main function, killing desmume"
+      kill -9 "$EMU_PID"
+      exit 0
+    fi
+  done
 else
-  # already gone
-  :
+  log "Wrong option for KILL_ON_RETURN $KILL_ON_RETURN "
 fi
 
-# If still alive (TERM didn’t work), force kill after grace period
-if kill -0 "${EMU_PID}" 2>/dev/null; then
-  sleep "${KILL_GRACE_SECS}"
-  if kill -0 "${EMU_PID}" 2>/dev/null; then
-    echo "[watchdog] Forcing SIGKILL to PID ${EMU_PID}"
-    kill -KILL "${EMU_PID}" 2>/dev/null || true
-    wait "${EMU_PID}" || true
-  fi
-fi
 
-exit "${EMU_RC}"
+

@@ -50,6 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    expect \
     less && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
