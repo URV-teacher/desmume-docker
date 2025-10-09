@@ -34,6 +34,7 @@ RUN git clone https://github.com/TASEmulators/desmume /desmume && \
 
 FROM ubuntu:24.04 AS runtime
 
+# Runtime packages of desmume and x11 and VNC utilites
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libsdl2-dev \
     libpcap-dev \
@@ -47,21 +48,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN mkdir ~/.vnc && \
-    touch ~/.vnc/passwd && \
-    x11vnc -storepasswd "devopsil" ~/.vnc/passwd
-
-# Replace 1000 with your user / group id
-# TODO move to entrypoint
-RUN export uid=1000 gid=1000 && \
-    mkdir -p /home/developer && \
-    mkdir -p /etc/sudoers.d/ && \
-    echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
-    echo "developer:x:${uid}:" >> /etc/group && \
-    echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
-    chmod 0440 /etc/sudoers.d/developer && \
-    chown ${uid}:${gid} -R /home/developer
-
 # Copy the compiled binary from the builder stage
 COPY --from=build /tmp/DeSmuME/usr/bin/desmume-cli /usr/bin
 COPY --from=build /tmp/DeSmuME/usr/bin/desmume /usr/bin
@@ -70,8 +56,21 @@ COPY --from=build /tmp/DeSmuME/usr/bin/desmume /usr/bin
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-USER developer
-ENV HOME /home/developer
+RUN mkdir ~/.vnc && \
+    touch ~/.vnc/passwd && \
+    x11vnc -storepasswd "password" ~/.vnc/passwd
+
+RUN export username=desmume uid=${UID} gid=${GID} && \
+    mkdir -p /home/${username} && \
+    mkdir -p /etc/sudoers.d/ && \
+    echo "${username}:x:${uid}:${gid}:${username},,,:/home/${username}:/bin/bash" >> /etc/passwd && \
+    echo "${username}:x:${uid}:" >> /etc/group && \
+    echo "${username} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${username} && \
+    chmod 0440 /etc/sudoers.d/${username} && \
+    chown ${uid}:${gid} -R /home/${username}
+
+USER desmume
+ENV HOME /home/desmume
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD []

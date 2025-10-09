@@ -1,35 +1,19 @@
 services:
-  runner-cli:
-    container_name: runner-cli
+  desmume:
+    container_name: desmume
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./roms:/roms/
+      - ./roms:/roms
       - ./fs:/fs
       - /tmp/.X11-unix:/tmp/.X11-unix        # no X11 socket bind needed in VNC mode
     ports:
-      - "3000:3000"
-      - "3001:3001"
-      - "5900:5900"
+      - "1000:1000"  # Emulator debug
+      # - "5900:5900"  # VNC
     environment:
       - DISPLAY=$DISPLAY
       - MODE=host
-      - XVFB_DISPLAY=:99
-      - GEOMETRY=1024x768x24
-      - VNC_PORT=5900
       # - VNC_PASSWORD=secret
-    entrypoint: sh -c "desmume-cli /roms/filesystem-nds.nds --disable-sound --cflash-image /fs/fat.img"
+    #entrypoint: sh -c "desmume-cli /roms/filesystem-nds.nds --disable-sound --cflash-image /fs/fat.img"
 
-  watchdog:
-    container_name: watchdog
-    build:
-      context: .
-      dockerfile: watchdog.Dockerfile
-    volumes:
-      - ./fs:/fs
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - runner-cli
-    restart: "no"
-    privileged: true
