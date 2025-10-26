@@ -65,7 +65,7 @@ COPY --from=build /tmp/DeSmuME/usr/bin/desmume /usr/bin
 
 # Change to use custom entrypoint
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /vpn-entrypoint.sh
 
 RUN export uid=1000 gid=1000 username=desmume && \
     mkdir -p /home/${username} && \
