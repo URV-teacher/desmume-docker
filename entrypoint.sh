@@ -189,7 +189,7 @@ cmd+=( "${user_args[@]}" )
 # Ensure line-buffered stdout/stderr so the watcher sees lines immediately
 # (stdbuf is in coreutils; busybox-alpine has 'stdbuf' in 'coreutils' pkg)
 EMULATOR_CMD=${cmd[*]}
-LOG_FILE=${LOG_FILE:$HOME/logs/desmume.log}
+LOG_FILE=${LOG_FILE:-$HOME/logs/desmume.log}
 
 # Make sure logs dir exists
 mkdir -p "$(dirname "$LOG_FILE")"
