@@ -5,9 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./roms:/roms
-      - ./fs:/fs
-      - ./logs:/logs
+      - ./roms:/home/desmume/roms
+      - ./fs:/home/desmume/fs
+      - ./logs:/home/desmume/logs
       - /tmp/.X11-unix:/tmp/.X11-unix        # no X11 socket bind needed in VNC mode
     ports:
       - "1000:1000"  # Emulator debug
