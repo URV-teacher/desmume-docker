@@ -196,6 +196,7 @@ mkdir -p "$(dirname "$LOG_FILE")"
 touch "$LOG_FILE"
 
 echo "[entrypoint] Starting emulator with log to $LOG_FILE"
+echo "Emulator command: ${EMULATOR_CMD[*]}"
 
 # Start emulator in background, capture PID
 unbuffer ${EMULATOR_CMD[@]} 2>&1 |
