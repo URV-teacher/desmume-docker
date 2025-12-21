@@ -82,7 +82,6 @@ ENV HOME /home/desmume
 RUN mkdir -p /home/desmume/.local/share
 # Use config file
 RUN mkdir -p /home/desmume/.config/desmume
-COPY ./config/desmume.ini /home/desmume/.config/desmume/config
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD []
