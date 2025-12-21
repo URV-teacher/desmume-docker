@@ -78,6 +78,11 @@ RUN export uid=1000 gid=1000 username=desmume && \
 
 USER desmume
 ENV HOME /home/desmume
+# To allow the save of recently used
+RUN mkdir -p /home/desmume/.local/share
+# Use config file
+RUN mkdir -p /home/desmume/.config/desmume
+COPY config/desmume.ini /home/desmume/.config/desmume/config
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD []
