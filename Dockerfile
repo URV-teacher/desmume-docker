@@ -24,7 +24,7 @@ RUN git clone https://github.com/TASEmulators/desmume /desmume && \
     mkdir -p /desmume/desmume/src/frontend/posix/build && \
     cd /desmume/desmume/src/frontend/posix && \
     autoreconf -i && \
-    ./configure --prefix=/usr --enable-gdb-stub && \
+    ./configure --prefix=/usr --enable-hud --enable-gdb-stub && \
     make -j"$(nproc)" && \
     cd /desmume/desmume/src/frontend/posix/gtk2 && \
     make -j"$(nproc)" && \
