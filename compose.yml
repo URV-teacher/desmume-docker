@@ -9,6 +9,7 @@ services:
       - ./fs:/home/desmume/fs
       - ./logs:/home/desmume/logs
       - /tmp/.X11-unix:/tmp/.X11-unix        # no X11 socket bind needed in VNC mode
+      - ./config/mountpoint:/home/desmume/.config/desmume
     ports:
       - "1000:1000"  # Emulator debug
       - "3000:3000"
