@@ -40,17 +40,6 @@ has_flag() {
   [[ " ${arr[*]} " == *" ${needle} "* ]]
 }
 
-first_positional_nds() {
-  # returns first non-flag arg ending with .nds, or empty
-  local a
-  for a in "$@"; do
-    [[ "$a" == --* ]] && continue
-    [[ "$a" == -*  ]] && continue
-    [[ "$a" == *.nds ]] && { printf '%s' "$a"; return 0; }
-  done
-  return 1
-}
-
 require_bin() { command -v "$1" >/dev/null 2>&1 || die "Missing required binary: $1"; }
 
 validate_int() {
@@ -130,8 +119,7 @@ esac
 # -------------------- ROM selection with precedence --------------------
 user_args=( "$@" )
 
-# If user already passed a ROM (.nds positional), **do not** auto-pick
-user_rom="$(first_positional_nds "${user_args[@]}")" || true
+user_rom=$ROM
 
 nds_rom=""
 if [[ -n "${user_rom}" ]]; then
@@ -147,8 +135,8 @@ else
     if (( ${#nds_files[@]} == 0 )); then
       die "No .nds files found in ${search_dir}. You can also pass a ROM path as a positional argument."
     fi
-    nds_rom="${nds_files[0]}"
-    log "Using fallback ROM: ${nds_rom}"
+    nds_rom=""
+    log "Not passing any ROM"
   fi
 fi
 
@@ -178,7 +166,7 @@ if [[ "${DESMUME_GDB_STUB}" == "1" ]]; then
   fi
 fi
 
-# 2) Add ROM if we auto-selected one (if user provided one, we don't add)
+# 2) Add ROM if we auto-selected one (if user did not provide one, we don't add)
 if [[ -n "${nds_rom}" ]]; then
   cmd+=( "${nds_rom}" )
 fi
