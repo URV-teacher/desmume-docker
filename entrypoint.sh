@@ -123,7 +123,7 @@ user_rom=$ROM
 
 nds_rom=""
 if [[ -n "${user_rom}" ]]; then
-  nds_rom=""  # User will supply it via args; don't auto-append
+  nds_rom="${user_rom}"  # User will supply it via args; don't auto-append
 else
   preferred_rom="/roms/rom.nds"
   search_dir="/roms"
