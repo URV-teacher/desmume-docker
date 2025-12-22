@@ -1,5 +1,6 @@
 services:
   runner-cli:
+    pull_policy: always
     container_name: runner-cli
     # Uncomment the following lines to build from a local vpn.Dockerfile instead of pulling from Docker Hub. You may use
     # this configuration to extend the base bmde Docker image with your own custom infrastructure.
