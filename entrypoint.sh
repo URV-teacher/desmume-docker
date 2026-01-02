@@ -13,7 +13,6 @@ export XVFB_DISPLAY="${VNC_XVFB_DISPLAY}"
 export GEOMETRY="${VNC_GEOMETRY}"
 
 : "${VNC_PORT:=5900}"
-echo $VNC_PORT
 : "${VNC_LISTEN:=0.0.0.0}"
 : "${VNC_PASSWORD:=}"                 # optional; empty => no auth
 
@@ -119,7 +118,7 @@ esac
 # -------------------- ROM selection with precedence --------------------
 user_args=( "$@" )
 
-user_rom=$ROM
+user_rom=${ROM:=}
 
 nds_rom=""
 if [[ -n "${user_rom}" ]]; then
