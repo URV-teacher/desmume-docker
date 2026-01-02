@@ -20,6 +20,7 @@ export GEOMETRY="${VNC_GEOMETRY}"
 : "${DESMUME_USE_SOUND:=1}"           # 0 => disable sound
 : "${DESMUME_GDB_STUB:=0}"            # 1 => enable GDB stub
 : "${DESMUME_GDB_PORT:=1000}"
+: "${AUTODISCOVER_ROM:=0}"
 
 : "${DESMUME_CFLASH_IMAGE:=/fs/fat.img}"
 
@@ -123,7 +124,7 @@ user_rom=${ROM:=}
 nds_rom=""
 if [[ -n "${user_rom}" ]]; then
   nds_rom="${user_rom}"  # User will supply it via args; don't auto-append
-else
+elif [[ -n "${AUTODISCOVER_ROM}" ]]; then
   preferred_rom="/roms/rom.nds"
   search_dir="/roms"
   if [[ -f "${preferred_rom}" ]]; then
