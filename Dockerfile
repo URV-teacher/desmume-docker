@@ -76,7 +76,7 @@ RUN export uid=1000 gid=1000 username=desmume && \
     chmod 0440 /etc/sudoers.d/${username} && \
     chown ${uid}:${gid} -R /home/${username}
 
-EXPOSE 1000
+EXPOSE 1024
 
 USER desmume
 ENV HOME /home/desmume
