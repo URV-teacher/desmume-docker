@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libosmesa6-dev \
     x11vnc \
     xvfb \
-    desmume && \
+    desmume-gtk && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
