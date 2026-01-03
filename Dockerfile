@@ -1,5 +1,8 @@
 FROM ubuntu:22.04 AS runtime
 
+# Prevent interactive prompts during apt install
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Runtime packages of desmume and x11 and VNC utilites
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libsdl2-dev \
