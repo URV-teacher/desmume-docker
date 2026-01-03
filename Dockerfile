@@ -11,16 +11,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libosmesa6-dev \
     x11vnc \
     xvfb \
-    desmume-gtk && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
     expect \
     less && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    desmume && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* \
 
 RUN mkdir -p ~/.vnc && \
     touch ~/.vnc/passwd && \
