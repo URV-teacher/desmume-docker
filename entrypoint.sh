@@ -54,8 +54,8 @@ cleanup() {
 trap cleanup EXIT
 
 # -------------------- Resolve binaries --------------------
-DESMUME_BIN="desmume"
-[[ "${DESMUME_CLI}" == "1" ]] && DESMUME_BIN="desmume-cli"
+DESMUME_BIN="desmume-cli"
+#[[ "${DESMUME_CLI}" == "1" ]] && DESMUME_BIN="desmume-cli"
 require_bin "${DESMUME_BIN}"
 
 # -------------------- Validate inputs --------------------
