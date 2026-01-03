@@ -42,7 +42,8 @@ RUN export uid=1000 gid=1000 username=desmume && \
 EXPOSE 1024
 
 USER desmume
-ENV HOME /home/desmume
+ENV HOME=/home/desmume
+ENV PATH="${PATH}:/usr/games"
 # To allow the save of recently used
 RUN mkdir -p /home/desmume/.local/share
 # Use config file
