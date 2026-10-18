@@ -109,6 +109,10 @@ case "${MODE}" in
   host)
     export DISPLAY="${X11_DISPLAY}"
     log "Using host X DISPLAY=${DISPLAY} (no VNC in this mode)"
+    if [[ -z "${XAUTHORITY:-}" || ! -r "${XAUTHORITY}" ]]; then
+      log "WARNING: no readable XAUTHORITY; the host X server (e.g. Xwayland) may refuse the connection."
+      log "WARNING: mount the host cookie and set XAUTHORITY, or run 'xhost +SI:localuser:\$USER' on the host."
+    fi
     ;;
   none)
     # Do not touch DISPLAY or start any X/VNC services.
