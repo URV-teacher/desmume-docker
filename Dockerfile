@@ -1,3 +1,29 @@
+FROM ubuntu:22.04 AS build
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Rebuild the distro DeSmuME 0.9.11 package (keeping its patches) with HUD support,
+# which the stock package is compiled without
+RUN sed -i 's/^# deb-src/deb-src/' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends dpkg-dev devscripts libagg-dev && \
+    apt-get build-dep -y desmume && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+RUN apt-get update && \
+    apt-get source desmume && \
+    rm -rf /var/lib/apt/lists/* && \
+    cd desmume-* && \
+    sed -i 's/--enable-gdb-stub \\/--enable-gdb-stub --enable-hud \\/' debian/rules && \
+    grep -q -- '--enable-hud' debian/rules && \
+    # libagg >= 2.6 dropped comp_op_minus/comp_op_contrast; DeSmuME's HUD code never uses them
+    sed -i '/agg::comp_op_minus\|agg::comp_op_contrast/d' src/agg2d.h && \
+    dpkg-buildpackage -b -uc -us -j"$(nproc)" && \
+    mv ../desmume_*.deb /build/desmume.deb
+
+
 FROM ubuntu:22.04 AS runtime
 
 # Prevent interactive prompts during apt install
@@ -19,8 +45,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# DeSmuME built with HUD support (see build stage); apt pulls its runtime dependencies
+COPY --from=build /build/desmume.deb /tmp/desmume.deb
 RUN apt-get update && apt-get install --install-recommends -y \
-    desmume && \
+    /tmp/desmume.deb && \
+    rm /tmp/desmume.deb && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
