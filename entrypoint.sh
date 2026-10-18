@@ -95,6 +95,7 @@ start_vnc_stack() {
     log "WARNING: x11vnc running without password (set VNC_PASSWORD to secure)"
   fi
 
+  mkdir -p "${HOME}/logs"
   log "Starting x11vnc on ${VNC_LISTEN}:${VNC_PORT} (DISPLAY=${DISPLAY})"
   x11vnc \
     -display "${DISPLAY}" \
@@ -102,7 +103,7 @@ start_vnc_stack() {
     -rfbport "${VNC_PORT}" \
     -forever -shared \
     -noshm -noxdamage \
-    -o /logs/x11vnc.log \
+    -o "${HOME}/logs/x11vnc.log" \
     "${VNC_AUTH_ARG[@]}" &
   X11VNC_PID=$!
 }
