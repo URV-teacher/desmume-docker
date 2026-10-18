@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     x11vnc \
     xvfb \
     expect \
+    python3 \
     less && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -60,6 +61,11 @@ RUN mkdir -p ~/.vnc && \
 # Change to use custom entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Default DeSmuME config (Windows desmume.ini format), translated to the GTK config by the entrypoint
+COPY config/desmume.ini /usr/share/desmume-docker/desmume.ini
+COPY scripts/desmume-ini2gtk.py /usr/local/bin/desmume-ini2gtk
+RUN chmod +x /usr/local/bin/desmume-ini2gtk
 
 RUN export uid=1000 gid=1000 username=desmume && \
     mkdir -p /home/${username} && \

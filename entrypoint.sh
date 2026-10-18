@@ -26,6 +26,10 @@ export GEOMETRY="${VNC_GEOMETRY}"
 
 : "${DESMUME_CFLASH_IMAGE:=/fs/fat.img}"
 
+: "${DESMUME_INI:=/config/desmume.ini}"   # user desmume.ini (controls, HUD...), applied on every start
+: "${DESMUME_DEFAULT_INI:=/usr/share/desmume-docker/desmume.ini}"  # baked default, applied on first run
+DESMUME_CONFIG_DIR="${HOME}/.config/desmume"
+
 PATTERN="Did your main() return"   # substring to detect
 KILL_ON_RETURN=${KILL_ON_RETURN:-1}                       # 1=enable, 0=disable
 KILL_GRACE_SECS=${KILL_GRACE_SECS:-1}                     # SIGKILL after this
@@ -149,6 +153,19 @@ setup_audio() {
   log "Sending audio to PulseAudio server ${PULSE_SERVER}"
 }
 setup_audio
+
+# -------------------- DeSmuME config (controls, HUD...) --------------------
+setup_config() {
+  if [[ -f "${DESMUME_INI}" ]]; then
+    log "Applying DeSmuME config ${DESMUME_INI}"
+    desmume-ini2gtk "${DESMUME_INI}" "${DESMUME_CONFIG_DIR}" || log "WARNING: could not apply ${DESMUME_INI}"
+  elif [[ ! -f "${DESMUME_CONFIG_DIR}/config" && -f "${DESMUME_DEFAULT_INI}" ]]; then
+    # First run: no key bindings saved yet, so seed them (and HUD options) from the default config
+    log "Applying default DeSmuME config ${DESMUME_DEFAULT_INI}"
+    desmume-ini2gtk "${DESMUME_DEFAULT_INI}" "${DESMUME_CONFIG_DIR}" || log "WARNING: could not apply default config"
+  fi
+}
+setup_config
 
 # -------------------- ROM selection with precedence --------------------
 user_args=( "$@" )
