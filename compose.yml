@@ -11,6 +11,8 @@ services:
       - ./logs:/home/desmume/logs
       - /tmp/.X11-unix:/tmp/.X11-unix        # no X11 socket bind needed in VNC mode
       - ./config/mountpoint:/home/desmume/.config/desmume
+      - ${XDG_RUNTIME_DIR}/pulse/native:/run/pulse/native  # host sound (PulseAudio / PipeWire)
+      # - ~/.config/pulse/cookie:/run/pulse/cookie:ro      # only needed by PulseAudio servers that require a cookie
     ports:
       - "1000:1000"  # Emulator debug
       - "3000:3000"

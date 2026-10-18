@@ -18,6 +18,8 @@ export GEOMETRY="${VNC_GEOMETRY}"
 
 : "${DESMUME_CLI:=0}"                 # 1 => desmume-cli, else GUI
 : "${DESMUME_USE_SOUND:=1}"           # 0 => disable sound
+: "${PULSE_SOCKET:=/run/pulse/native}" # host PulseAudio/PipeWire socket mount point
+: "${PULSE_COOKIE_FILE:=/run/pulse/cookie}" # optional host PulseAudio cookie mount point
 : "${DESMUME_GDB_STUB:=0}"            # 1 => enable GDB stub
 : "${DESMUME_GDB_PORT:=1000}"
 : "${AUTODISCOVER_ROM:=0}"
@@ -119,6 +121,34 @@ case "${MODE}" in
     log "MODE=none: no X/VNC will be started; running DeSmuME as-is."
     ;;
 esac
+
+# -------------------- Audio (host PulseAudio / PipeWire) --------------------
+setup_audio() {
+  if [[ "${DESMUME_USE_SOUND}" != "1" ]]; then
+    log "Sound disabled (DESMUME_USE_SOUND=${DESMUME_USE_SOUND})"
+    return
+  fi
+
+  if [[ -z "${PULSE_SERVER:-}" && -S "${PULSE_SOCKET}" ]]; then
+    export PULSE_SERVER="unix:${PULSE_SOCKET}"
+  fi
+  if [[ -z "${PULSE_COOKIE:-}" && -f "${PULSE_COOKIE_FILE}" ]]; then
+    export PULSE_COOKIE="${PULSE_COOKIE_FILE}"
+  fi
+
+  if [[ -z "${PULSE_SERVER:-}" ]]; then
+    log "No host audio configured; sound will not be heard."
+    log "Mount the host socket (e.g. -v \$XDG_RUNTIME_DIR/pulse/native:${PULSE_SOCKET}) or set PULSE_SERVER."
+    return
+  fi
+
+  if [[ "${PULSE_SERVER}" == unix:* && ! -S "${PULSE_SERVER#unix:}" ]]; then
+    log "WARNING: PULSE_SERVER=${PULSE_SERVER} is not a socket; sound will not be heard."
+    return
+  fi
+  log "Sending audio to PulseAudio server ${PULSE_SERVER}"
+}
+setup_audio
 
 # -------------------- ROM selection with precedence --------------------
 user_args=( "$@" )
