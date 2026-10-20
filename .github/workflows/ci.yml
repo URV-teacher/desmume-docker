@@ -12,11 +12,13 @@ jobs:
     uses: URV-teacher/bmde/.github/workflows/component-image.yml@master
     with:
       image: aleixmt/desmume
-      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh
+      # The reusable workflows run the tests from scripts/, so they are referenced relative to it
+      tests: ../test/test_desmume.sh ../test/test_wrapper.sh ../test/test_gdbport.sh ../test/test_config.sh
     secrets: inherit
 
   host:
     uses: URV-teacher/bmde/.github/workflows/component-host.yml@master
     with:
       install: install_desmume.sh install_wrapper.sh
-      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh
+      # The reusable workflows run the tests from scripts/, so they are referenced relative to it
+      tests: ../test/test_desmume.sh ../test/test_wrapper.sh ../test/test_gdbport.sh ../test/test_config.sh

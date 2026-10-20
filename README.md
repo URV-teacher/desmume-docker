@@ -19,7 +19,7 @@ scripts/install_desmume.sh
 scripts/install_wrapper.sh  # $DESMUME/DeSmuME.exe and DeSmuME_dev.exe, used by the Makefiles of the course
 ```
 
-Test the installation with the `scripts/test_*.sh` scripts. To build the image:
+Test the installation with the `test/test_*.sh` scripts. To build the image:
 
 ```shell
 docker build -t aleixmt/desmume .
