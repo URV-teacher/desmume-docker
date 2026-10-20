@@ -5,23 +5,28 @@ graphical output on the host (X11 / Wayland) or through VNC. It is used by the `
 
 ## Build and installation
 
-DeSmuME 0.9.11 is built from the sources of its Ubuntu package (the upstream sources and the patches of the package,
-downloaded from Launchpad and checked against pinned checksums), with `--enable-hud` so the HUD (`View -> HUD`: FPS,
+DeSmuME 0.9.11 is built from the sources of its Ubuntu package (the upstream sources and the patches of the package),
+with `--enable-hud` so the HUD (`View -> HUD`: FPS,
 input, lag counter...) works and with the GDB stub. The distribution packages lack them, or do not provide this version
 anymore.
 
-The scripts in `scripts/` build and install it into `/URV/bmde/DeSmuME_0.9.11`, with its environment (`DESMUME`,
-`PATH`) in `/etc/profile.d/bmde-desmume.sh`. The image is built with them, and they install it in an Ubuntu / Debian
-host too:
+`scripts/download_assets.sh` downloads those sources from Launchpad (and the ROM and the project used by the tests) into
+`assets/`, checking them against their pinned SHA-256 (see [external
+resources](https://github.com/URV-teacher/bmde/blob/master/docs/development/external-resources.md) of bmde). Then the
+scripts in `src/` build and install DeSmuME into `/URV/bmde/DeSmuME_0.9.11`, with its environment (`DESMUME`, `PATH`) in
+`/etc/profile.d/bmde-desmume.sh`, taking the files only from `src/`, `config/` and `assets/`. The image is built with
+them, and they install it in an Ubuntu / Debian host too:
 
 ```shell
-scripts/install_desmume.sh
-scripts/install_wrapper.sh  # $DESMUME/DeSmuME.exe and DeSmuME_dev.exe, used by the Makefiles of the course
+scripts/download_assets.sh
+src/install_desmume.sh
+src/install_wrapper.sh  # $DESMUME/DeSmuME.exe and DeSmuME_dev.exe, used by the Makefiles of the course
 ```
 
 Test the installation with the `test/test_*.sh` scripts. To build the image:
 
 ```shell
+scripts/download_assets.sh  # The image is built from the assets
 docker build -t aleixmt/desmume .
 ```
 
@@ -70,3 +75,23 @@ environment variables:
 | `PULSE_SERVER`      | unset                | Standard libpulse server address; overrides `PULSE_SOCKET`.   |
 | `PULSE_SOCKET`      | `/run/pulse/native`  | Where the host socket is mounted.                             |
 | `PULSE_COOKIE_FILE` | `/run/pulse/cookie`  | Where the host cookie is mounted, if any.                     |
+
+## FAT image (CompactFlash card)
+
+The programs of the course that read and write files (with libfat) need a FAT image as the CompactFlash card of the
+emulator. The entrypoint uses `/fs/fat.img` if it exists (`DESMUME_CFLASH_IMAGE` changes it). Create an empty one in
+`fs/fat.img` (it needs `mkfs.fat`, of the package `dosfstools`) and mount it:
+
+```bash
+scripts/create_fat_image.sh
+docker run --rm -v "$PWD/fs:/fs" ... aleixmt/desmume
+```
+
+`test/image/test_fat.sh` tests this mechanism from outside the image (it needs Docker, `mkfs.fat` and mtools): it runs
+the ROM of [filesystem-nds](https://github.com/URV-teacher/filesystem-nds) (built by `scripts/download_assets.sh`) with
+an empty FAT image, and checks the files that it writes into it:
+
+```bash
+scripts/download_assets.sh filesystem-nds.nds
+test/image/test_fat.sh aleixmt/desmume
+```

@@ -3,18 +3,12 @@
 # Without a display (e.g. in a container) it uses a virtual one (xvfb-run).
 set -Eeuo pipefail
 
-# Test ROM, from the releases of https://github.com/URV-teacher/hello-world-nds
-ROM_URL="https://github.com/URV-teacher/hello-world-nds/releases/download/v1.0/hello-world-nds.nds"
-ROM_SHA256="859c0517eb7be170f06ea54ded3fb521395aaece7b7e5fdb699311eca09f178d"
+# Test ROM (hello-world-nds), downloaded by scripts/download_assets.sh
+ROM="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)/../assets/hello-world-nds.nds"
 PORT=1024
 
 work_dir="$(mktemp -d)"
-if command -v wget > /dev/null; then
-  wget -q "${ROM_URL}" -O "${work_dir}/test.nds"
-else
-  curl -fsSL "${ROM_URL}" -o "${work_dir}/test.nds"
-fi
-echo "${ROM_SHA256}  ${work_dir}/test.nds" | sha256sum -c --quiet
+cp "${ROM}" "${work_dir}/test.nds"
 display=(); if [ -z "${DISPLAY:-}" ]; then display=(xvfb-run -a); fi
 
 timeout 15 "${display[@]}" desmume --disable-sound --arm9gdb="${PORT}" "${work_dir}/test.nds" > /dev/null 2>&1 &

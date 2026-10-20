@@ -12,13 +12,14 @@ jobs:
     uses: URV-teacher/bmde/.github/workflows/component-image.yml@master
     with:
       image: aleixmt/desmume
-      # The reusable workflows run the tests from scripts/, so they are referenced relative to it
-      tests: ../test/test_desmume.sh ../test/test_wrapper.sh ../test/test_gdbport.sh ../test/test_config.sh
+      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh
+      # The FAT image test creates and reads FAT images in the machine
+      setup: sudo apt-get update && sudo apt-get install -y --no-install-recommends dosfstools mtools
+      image_tests: test_fat.sh
     secrets: inherit
 
   host:
     uses: URV-teacher/bmde/.github/workflows/component-host.yml@master
     with:
       install: install_desmume.sh install_wrapper.sh
-      # The reusable workflows run the tests from scripts/, so they are referenced relative to it
-      tests: ../test/test_desmume.sh ../test/test_wrapper.sh ../test/test_gdbport.sh ../test/test_config.sh
+      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh

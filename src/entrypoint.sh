@@ -1,4 +1,4 @@
-push#!/usr/bin/env bash
+#!/usr/bin/env bash
 set -Eeuo pipefail
 
 # Logging, validation and graphical output (MODE, VNC_*) shared by the BMDE images (from the base image)

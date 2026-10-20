@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Tests the run operation: builds the hello world project of the course and runs it with its Makefile (make run), as
-# in the Windows BMDE. Needs devkitARM, libnds and git. Without a display (e.g. in a container) it uses a virtual one.
+# in the Windows BMDE. Needs devkitARM and libnds. Without a display (e.g. in a container) it uses a virtual one.
 set -Eeuo pipefail
 
 work_dir="$(mktemp -d)"
-git clone https://github.com/URV-teacher/hello-world-nds.git "${work_dir}/hello-world-nds"
+# Hello world project of the course, downloaded by scripts/download_assets.sh
+mkdir "${work_dir}/hello-world-nds"
+tar -xzf "$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)/../assets/hello-world-nds.tar.gz" \
+  -C "${work_dir}/hello-world-nds" --strip-components=1
 make -C "${work_dir}/hello-world-nds"
 display=(); if [ -z "${DISPLAY:-}" ]; then display=(xvfb-run -a); fi
 
