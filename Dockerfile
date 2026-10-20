@@ -1,90 +1,36 @@
-FROM ubuntu:22.04 AS build
+# DeSmuME 0.9.11 (the version of the course) with HUD and GDB stub, with the graphical output, sound and configuration
+# handled by entrypoint.sh. The installation is done by the scripts in scripts/, the same ones used to install it in a
+# host (see README.md).
 
-ENV DEBIAN_FRONTEND=noninteractive
+# STAGE 1: Build. install_desmume.sh builds DeSmuME into /URV/bmde/DeSmuME_0.9.11
+# Base image of the BMDE images (docker-bake.hcl of bmde replaces this stage by the base image being built)
+FROM aleixmt/bmde-base:latest AS bmde-base
 
-# Rebuild the distro DeSmuME 0.9.11 package (keeping its patches) with HUD support,
-# which the stock package is compiled without
-RUN sed -i 's/^# deb-src/deb-src/' /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends dpkg-dev devscripts libagg-dev && \
-    apt-get build-dep -y desmume && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+FROM bmde-base AS build
 
-WORKDIR /build
-RUN apt-get update && \
-    apt-get source desmume && \
-    rm -rf /var/lib/apt/lists/* && \
-    cd desmume-* && \
-    sed -i 's/--enable-gdb-stub \\/--enable-gdb-stub --enable-hud \\/' debian/rules && \
-    grep -q -- '--enable-hud' debian/rules && \
-    # libagg >= 2.6 dropped comp_op_minus/comp_op_contrast; DeSmuME's HUD code never uses them
-    sed -i '/agg::comp_op_minus\|agg::comp_op_contrast/d' src/agg2d.h && \
-    dpkg-buildpackage -b -uc -us -j"$(nproc)" && \
-    mv ../desmume_*.deb /build/desmume.deb
+RUN --mount=type=bind,target=/component /component/scripts/install_desmume.sh
 
 
-FROM ubuntu:22.04 AS runtime
+# STAGE 2: Runtime. install_desmume.sh finds DeSmuME already built, and installs its runtime dependencies only
+FROM bmde-base
 
-# Prevent interactive prompts during apt install
-ENV DEBIAN_FRONTEND=noninteractive
+RUN bmde-install-display
 
-# Runtime packages of desmume and x11 and VNC utilites
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libsdl2-dev \
-    libpcap-dev \
-    libgtk2.0-dev \
-    libopenal-dev \
-    libsoundtouch-dev \
-    libagg-dev \
-    libosmesa6-dev \
-    x11vnc \
-    xvfb \
-    expect \
-    python3 \
-    less && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+COPY --from=build /URV/bmde/DeSmuME_0.9.11 /URV/bmde/DeSmuME_0.9.11
+RUN --mount=type=bind,target=/component \
+    /component/scripts/install_desmume.sh \
+    && /component/scripts/install_wrapper.sh \
+    && apt-get install -y --no-install-recommends expect \
+    && rm -rf /var/lib/apt/lists/*
 
-# DeSmuME built with HUD support (see build stage); apt pulls its runtime dependencies
-COPY --from=build /build/desmume.deb /tmp/desmume.deb
-RUN apt-get update && apt-get install --install-recommends -y \
-    /tmp/desmume.deb && \
-    rm /tmp/desmume.deb && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+COPY --chmod=755 entrypoint.sh /entrypoint.sh
 
-RUN mkdir -p ~/.vnc && \
-    touch ~/.vnc/passwd && \
-    x11vnc -storepasswd "devopsil" ~/.vnc/passwd
-
-# Change to use custom entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Default DeSmuME config (Windows desmume.ini format), translated to the GTK config by the entrypoint
-COPY config/desmume.ini /usr/share/desmume-docker/desmume.ini
-COPY scripts/desmume-ini2gtk.py /usr/local/bin/desmume-ini2gtk
-RUN chmod +x /usr/local/bin/desmume-ini2gtk
-
-RUN export uid=1000 gid=1000 username=desmume && \
-    mkdir -p /home/${username} && \
-    mkdir -p /etc/sudoers.d/ && \
-    echo "${username}:x:${uid}:${gid}:${username},,,:/home/${username}:/bin/bash" >> /etc/passwd && \
-    echo "${username}:x:${uid}:" >> /etc/group && \
-    echo "${username} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${username} && \
-    chmod 0440 /etc/sudoers.d/${username} && \
-    chown ${uid}:${gid} -R /home/${username}
+RUN useradd --create-home --uid 1000 --shell /bin/bash desmume
+USER desmume
+# Configuration of DeSmuME (controls, HUD...) and recently used files
+RUN mkdir -p /home/desmume/.config/desmume /home/desmume/.local/share
 
 EXPOSE 1024
-
-USER desmume
-ENV HOME=/home/desmume
-ENV PATH="${PATH}:/usr/games"
-# To allow the save of recently used
-RUN mkdir -p /home/desmume/.local/share
-# Use config file
-RUN mkdir -p /home/desmume/.config/desmume
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD []

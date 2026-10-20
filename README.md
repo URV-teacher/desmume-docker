@@ -1,13 +1,29 @@
-# desmume-cli
-Docker for desmume-cli
+# desmume-docker
+DeSmuME 0.9.11, the version of the course, in Docker, with HUD, GDB stub, sound, the controls of the course and the
+graphical output on the host (X11 / Wayland) or through VNC. It is used by the `bmde run` and `bmde debug` commands of
+[bmde](https://github.com/URV-teacher/bmde), but can be used on its own.
 
-Commit for desmume 0.9.11
-git checkout 7c7fd242c221a8f722d39f9df5cdf40789cb31e3 && \
-## Build
+## Build and installation
 
-The image ships DeSmuME 0.9.11, rebuilt from the Ubuntu 22.04 source package (keeping its patches) with
-`--enable-hud`, so the HUD (`View -> HUD`: FPS, input, lag counter...) works. The stock package is compiled
-without it.
+DeSmuME 0.9.11 is built from the sources of its Ubuntu package (the upstream sources and the patches of the package,
+downloaded from Launchpad and checked against pinned checksums), with `--enable-hud` so the HUD (`View -> HUD`: FPS,
+input, lag counter...) works and with the GDB stub. The distribution packages lack them, or do not provide this version
+anymore.
+
+The scripts in `scripts/` build and install it into `/URV/bmde/DeSmuME_0.9.11`, with its environment (`DESMUME`,
+`PATH`) in `/etc/profile.d/bmde-desmume.sh`. The image is built with them, and they install it in an Ubuntu / Debian
+host too:
+
+```shell
+scripts/install_desmume.sh
+scripts/install_wrapper.sh  # $DESMUME/DeSmuME.exe and DeSmuME_dev.exe, used by the Makefiles of the course
+```
+
+Test the installation with the `scripts/test_*.sh` scripts. To build the image:
+
+```shell
+docker build -t aleixmt/desmume .
+```
 
 ## Configuration (controls, HUD)
 
@@ -16,7 +32,7 @@ shared between Windows and this image. On start, the entrypoint translates it (`
 the Linux (GTK) frontend: key bindings from `[Controls]`, and HUD, screen gap, rotation and SPU interpolation
 options. Other options are ignored.
 
-* **Default config**: `config/desmume.ini` is baked into the image at `/usr/share/desmume-docker/desmume.ini`. It is
+* **Default config**: `config/desmume.ini` is installed at `$DESMUME/share/bmde/desmume.ini`. It is
   applied on the first run only (when no key bindings are saved yet in `~/.config/desmume`), so changes made from the
   emulator window persist if `~/.config/desmume` is a volume.
 * **Custom config**: mount your own file at `/config/desmume.ini`. It is applied on every start, overriding saved
@@ -29,7 +45,7 @@ docker run --rm -v "$PWD/desmume.ini:/config/desmume.ini:ro" ... aleixmt/desmume
 | Variable              | Default                                 | Description                                     |
 |-----------------------|-----------------------------------------|-------------------------------------------------|
 | `DESMUME_INI`         | `/config/desmume.ini`                   | Custom config, applied on every start if found. |
-| `DESMUME_DEFAULT_INI` | `/usr/share/desmume-docker/desmume.ini` | Default config, applied on first run.           |
+| `DESMUME_DEFAULT_INI` | `$DESMUME/share/bmde/desmume.ini`       | Default config, applied on first run.           |
 
 Unassigned keys (code `0`) keep the defaults of the Linux frontend (Debug: `p`, Boost: `o`, Lid: `Backspace`).
 

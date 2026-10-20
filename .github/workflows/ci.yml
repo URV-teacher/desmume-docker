@@ -1,0 +1,22 @@
+# Builds and tests the image of the component, and installs and tests the component in an Ubuntu machine with the
+# install scripts. The jobs are the reusable workflows of the bmde repository, shared by all the components.
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  image:
+    uses: URV-teacher/bmde/.github/workflows/component-image.yml@master
+    with:
+      image: aleixmt/desmume
+      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh
+    secrets: inherit
+
+  host:
+    uses: URV-teacher/bmde/.github/workflows/component-host.yml@master
+    with:
+      install: install_desmume.sh install_wrapper.sh
+      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh
