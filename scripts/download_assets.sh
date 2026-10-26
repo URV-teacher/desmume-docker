@@ -29,7 +29,7 @@ build_filesystem_nds() {
       || status=1
   elif [ "${status}" -eq 0 ]; then
     docker run --rm --user "$(id -u):$(id -g)" -v "${build_dir}/filesystem-nds:/input/filesystem-nds" \
-      -w /input/filesystem-nds --entrypoint bash "${DEVKITARM_IMAGE:-aleixmt/bmde-linux:latest}" -c make \
+      -w /input/filesystem-nds --entrypoint bash "${DEVKITARM_IMAGE:-aleixmt/devkitarm-nds:latest}" -c make \
       && docker run --rm --user "$(id -u):$(id -g)" -v "${build_dir}/filesystem-nds:/input" -w /input \
         "${DLDITOOL_IMAGE:-aleixmt/dlditool:latest}" mpcf.dldi filesystem-nds.nds || status=1
   fi
