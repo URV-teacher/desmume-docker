@@ -26,3 +26,4 @@ wait "${desmume_pid}" 2>/dev/null || true
 rm -rf "${work_dir}"
 [ "${listening}" -eq 0 ]
 echo "DeSmuME listening to port ${PORT}"
+echo "DeSmuME GDB stub OK"
