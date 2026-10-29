@@ -8,3 +8,4 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 for wrapper in DeSmuME.exe DeSmuME_dev.exe; do
   DESMUME_COMMAND="${DESMUME}/${wrapper}" "${SCRIPT_DIR}/test_desmume.sh"
 done
+echo "DeSmuME wrappers OK"
