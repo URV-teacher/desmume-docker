@@ -21,5 +21,7 @@ jobs:
   host:
     uses: URV-teacher/bmde/.github/workflows/component-host.yml@master
     with:
+      # test_operation.sh builds the project that it runs, with devkitARM and libnds, installed as a student does
+      setup: curl -fsSL https://raw.githubusercontent.com/URV-teacher/bmde/master/scripts/install.sh | bash -s -- devkitarm
       install: install_desmume.sh install_wrapper.sh
-      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh
+      tests: test_desmume.sh test_wrapper.sh test_gdbport.sh test_config.sh test_operation.sh
